@@ -47,7 +47,7 @@ def download_survey_data(survey_id: str, token: str, output_dir: Path) -> tuple[
     
     # Download responses
     print(f"Downloading responses for survey {survey_id}...")
-    replies_url = f"https://backend.workey.ai/surveys/replies/{survey_id}"
+    replies_url = f"https://backend.workey.ai/surveys/{survey_id}/replies/"
     try:
         replies_response = requests.get(replies_url, headers=headers)
         replies_response.raise_for_status()
