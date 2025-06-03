@@ -18,20 +18,20 @@ def get_downloads_folder():
 def get_environment_url():
     """Get the base URL based on user's environment selection."""
     print("Select environment:")
-    print("  1. Test  (https://overview-test.workey.ai)")
-    print("  2. Stage (https://overview-stage.workey.ai)")
-    print("  3. Prod  (https://overview.workey.ai)")
+    print("  1. Test  (https://backend-test.workey.ai)")
+    print("  2. Stage (https://backend-stage.workey.ai)")
+    print("  3. Prod  (https://backend.workey.ai)")
     print()
     
     while True:
         choice = input("Enter your choice (1, 2, or 3): ").strip()
         
         if choice == "1":
-            return "https://overview-test.workey.ai"
+            return "backend-test.workey.ai"
         elif choice == "2":
-            return "https://overview-stage.workey.ai"
+            return "https://backend-stage.workey.ai"
         elif choice == "3":
-            return "https://overview.workey.ai"
+            return "https://backend.workey.ai)"
         else:
             print("Invalid choice. Please enter 1, 2, or 3.")
 
