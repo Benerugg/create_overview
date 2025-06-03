@@ -1,0 +1,38 @@
+name: Build Windows EXE
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:  # Allows manual trigger
+
+jobs:
+  build-windows-exe:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Create virtual environment and install dependencies
+      run: |
+        python -m venv build_env
+        .\build_env\Scripts\activate
+        python -m pip install --upgrade pip
+        pip install requests pandas pyreadstat numpy pyinstaller
+    
+    - name: Build EXE with PyInstaller
+      run: |
+        .\build_env\Scripts\activate
+        pyinstaller --onefile --name Survey_Processor simple_survey_processor.py
+    
+    - name: Upload EXE artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: Survey_Processor_Windows
+        path: dist/Survey_Processor.exe
+        retention-days: 30
