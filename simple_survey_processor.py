@@ -15,7 +15,27 @@ def get_downloads_folder():
     home = Path.home()
     return home / "Downloads"
 
-def download_survey_data(survey_id: str, token: str, output_dir: Path) -> tuple[Dict, List]:
+def get_environment_url():
+    """Get the base URL based on user's environment selection."""
+    print("Select environment:")
+    print("  1. Test  (https://overview-test.workey.ai)")
+    print("  2. Stage (https://overview-stage.workey.ai)")
+    print("  3. Prod  (https://overview.workey.ai)")
+    print()
+    
+    while True:
+        choice = input("Enter your choice (1, 2, or 3): ").strip()
+        
+        if choice == "1":
+            return "https://overview-test.workey.ai"
+        elif choice == "2":
+            return "https://overview-stage.workey.ai"
+        elif choice == "3":
+            return "https://overview.workey.ai"
+        else:
+            print("Invalid choice. Please enter 1, 2, or 3.")
+
+def download_survey_data(survey_id: str, token: str, base_url: str, output_dir: Path) -> tuple[Dict, List]:
     """Download survey structure and responses from API."""
     headers = {
         "Content-Type": "application/json",
@@ -28,7 +48,7 @@ def download_survey_data(survey_id: str, token: str, output_dir: Path) -> tuple[
     
     # Download survey structure
     print(f"Downloading survey structure for survey {survey_id}...")
-    survey_url = f"https://backend.workey.ai/surveys/{survey_id}"
+    survey_url = f"{base_url}/surveys/{survey_id}"
     try:
         survey_response = requests.get(survey_url, headers=headers)
         survey_response.raise_for_status()
@@ -42,12 +62,13 @@ def download_survey_data(survey_id: str, token: str, output_dir: Path) -> tuple[
         
     except requests.exceptions.RequestException as e:
         print(f"✗ Error downloading survey structure: {e}")
+        print(f"  URL attempted: {survey_url}")
         input("\nPress Enter to exit...")
         sys.exit(1)
     
     # Download responses
     print(f"Downloading responses for survey {survey_id}...")
-    replies_url = f"https://backend.workey.ai/surveys/{survey_id}/replies/"
+    replies_url = f"{base_url}/surveys/{survey_id}/replies/"
     try:
         replies_response = requests.get(replies_url, headers=headers)
         replies_response.raise_for_status()
@@ -61,6 +82,7 @@ def download_survey_data(survey_id: str, token: str, output_dir: Path) -> tuple[
         
     except requests.exceptions.RequestException as e:
         print(f"✗ Error downloading responses: {e}")
+        print(f"  URL attempted: {replies_url}")
         input("\nPress Enter to exit...")
         sys.exit(1)
     
@@ -191,9 +213,15 @@ def main():
     print("=" * 60)
     print("\nThis tool will download and process survey data from Workey.")
     print("You will need:")
-    print("  1. Your Survey ID (e.g., 10551)")
-    print("  2. Your API Token")
+    print("  1. Select your environment (test/stage/prod)")
+    print("  2. Your Survey ID (e.g., 10551)")
+    print("  3. Your API Token")
     print("\n" + "=" * 60 + "\n")
+    
+    # Get environment selection
+    base_url = get_environment_url()
+    env_name = "Test" if "test" in base_url else "Stage" if "stage" in base_url else "Prod"
+    print(f"\n✓ Selected environment: {env_name} ({base_url})\n")
     
     # Get user input
     survey_id = input("Enter Survey ID: ").strip()
@@ -213,6 +241,8 @@ def main():
     
     print(f"\n🚀 Starting Survey Data Processing")
     print(f"=" * 50)
+    print(f"Environment: {env_name}")
+    print(f"Base URL: {base_url}")
     print(f"Survey ID: {survey_id}")
     print(f"Output directory: {downloads_dir}")
     print(f"=" * 50 + "\n")
@@ -220,7 +250,8 @@ def main():
     # Download data
     survey_data, responses_data, output_dir = download_survey_data(
         survey_id, 
-        token, 
+        token,
+        base_url,
         downloads_dir
     )
     
@@ -275,6 +306,8 @@ def main():
     # Save metadata
     metadata = {
         'survey_id': survey_id,
+        'environment': env_name,
+        'base_url': base_url,
         'total_responses': len(df),
         'total_questions': len(mappings['questions']),
         'questions': mappings['questions'],
